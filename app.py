@@ -1,7 +1,6 @@
 from flask import Flask, jsonify , request
 from twilio.rest import Client
 from dotenv import load_dotenv
-import requests
 import os
 
 app = Flask(__name__)
@@ -14,8 +13,6 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-
-print(TWILIO_ACCOUNT_SID)
 
 
 # ============================================
@@ -31,6 +28,79 @@ def enviar_mensagem(numero, mensagem):
     
     return sms
 
+
+# ============================================
+# ENDPOINT - AGENDAMENTO
+# ============================================
+@app.route("/notify/agendamento", methods=["POST"])
+def notify_agendamento():
+
+    print("REQUISIÇÃO RECEBIDA")
+    dataBruta = request.get_json()
+
+    data = {
+        "telefone": dataBruta["telefone"],
+        "cliente": dataBruta["cliente"],
+        "servico": dataBruta["servico"]["nome"],
+        "data": dataBruta["data"],
+        "horario": dataBruta["horaInicio"],
+        "ordemPedido": dataBruta["ordemPedido"]
+    }
+
+    sms = enviar_mensagem(
+        data["telefone"],
+        mensagem_agendamento(data)
+    )
+
+    return jsonify({
+        "success": True,
+        "sid": sms.sid
+    })
+
+
+# ============================================
+# ENDPOINT - PAGAMENTO
+# ============================================
+@app.route("/notify/pagamento", methods=["POST"])
+def notify_pagamento():
+
+    data = request.get_json()
+
+    sms = enviar_mensagem(
+        data["telefone"],
+        mensagem_pagamento(data)
+    )
+
+    return jsonify({
+        "success": True,
+        "sid": sms.sid
+    })
+
+
+# ============================================
+# ENDPOINT - LEMBRETE AGENDAMENTO
+# ============================================
+@app.route("/notify/lembrete-agendamento", methods=["POST"])
+def notify_lembrete():
+
+    data = request.get_json()
+
+    sms = enviar_mensagem(
+        data["telefone"],
+        mensagem_lembrete_agendamento(data)
+    )
+
+    return jsonify({
+        "success": True,
+        "sid": sms.sid
+    })
+
+
+# ==============================================
+# TEMPLATES - TEMPLATES - TEMPLATES - TEMPLATES 
+# MENSAGENS - MENSAGENS - MENSAGENS - MENSAGENS 
+# TEMPLATES - TEMPLATES - TEMPLATES - TEMPLATES 
+# ==============================================
 
 # ============================================
 # TEMPLATE - AGENDAMENTO CRIADO
@@ -97,79 +167,6 @@ def mensagem_lembrete_pacote(data):
     return f"""
     ⏰ Lembrete do seu pacote!  
     """
-
-
-# ============================================
-# ENDPOINT - AGENDAMENTO
-# ============================================
-@app.route("/notify/agendamento", methods=["POST"])
-def notify_agendamento():
-
-    print("REQUISIÇÃO RECEBIDA")
-
-    dataBruta = request.get_json()
-    print("DADOS BRUTOS:", dataBruta)
-    print("SEVICO:", dataBruta["servico"])
-    data = {
-        "telefone": dataBruta["telefone"],
-        "cliente": dataBruta["cliente"],
-        "servico": dataBruta["servico"]["nome"],
-        "data": dataBruta["data"],
-        "horario": dataBruta["horaInicio"],
-        "ordemPedido": dataBruta["ordemPedido"]
-    }
-    print(data)
-
-    sms = enviar_mensagem(
-        data["telefone"],
-        mensagem_agendamento(data)
-    )
-
-    return "ok" , 200
-
-
-    return jsonify({
-        "success": True,
-        "sid": sms.sid
-    })
-
-
-# ============================================
-# ENDPOINT - PAGAMENTO
-# ============================================
-@app.route("/notify/pagamento", methods=["POST"])
-def notify_pagamento():
-
-    data = request.get_json()
-
-    sms = enviar_mensagem(
-        data["telefone"],
-        mensagem_pagamento(data)
-    )
-
-    return jsonify({
-        "success": True,
-        "sid": sms.sid
-    })
-
-
-# ============================================
-# ENDPOINT - LEMBRETE AGENDAMENTO
-# ============================================
-@app.route("/notify/lembrete-agendamento", methods=["POST"])
-def notify_lembrete():
-
-    data = request.get_json()
-
-    sms = enviar_mensagem(
-        data["telefone"],
-        mensagem_lembrete_agendamento(data)
-    )
-
-    return jsonify({
-        "success": True,
-        "sid": sms.sid
-    })
 
 
 # ============================================
