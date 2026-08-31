@@ -5,6 +5,7 @@ on:
 
 jobs:
   build:
+    name: Build and Deploy - Python
     uses: Pesquisa-e-Inovacao-Grupo-8/TEMPLATES-PIPELINES/.github/workflows/build-python.yml@main
     with:
       GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
