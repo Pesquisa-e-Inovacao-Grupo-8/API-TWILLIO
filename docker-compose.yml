@@ -1,0 +1,18 @@
+services:
+  api-twillio:
+    image: imagestreampi/api-twillio:1
+    container_name: api-twillio
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      TWILIO_ACCOUNT_SID= ${TWILIO_ACCOUNT}
+      TWILIO_AUTH_TOKEN= ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER= ${TWILIO_PHONE_NUMBER}
+      TWILIO_RECOVERY_CODE= ${TWILIO_RECOVERY_CODE}
+      
+    ports:
+      - "8090:8090"
+
