@@ -20,10 +20,12 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 # ============================================
 def enviar_mensagem(numero, mensagem):
 
+    numero = ''.join(caractere for caractere in numero if caractere.isdigit())
+
     sms = client.messages.create(
         body=mensagem,
         from_="whatsapp:+14155238886",  # sandbox Twilio
-        to=f"whatsapp:{numero}"
+        to=f"whatsapp:{"+55"+numero}"
     )
     
     return sms
@@ -35,16 +37,29 @@ def enviar_mensagem(numero, mensagem):
 @app.route("/notify/agendamento", methods=["POST"])
 def notify_agendamento():
 
-    print("REQUISIÇÃO RECEBIDA")
-    dataBruta = request.get_json()
+    print("REQUISIÇÃO RECEBIDA", flush=True)
+    corpo_bruto = request.get_data(as_text=True)
+    dataBruta = request.get_json(silent=True)
+
+    print("+=+=+= PAYLOAD RECEBIDO +=+=+=+=", flush=True)
+    print(f"Content-Type: {request.content_type}", flush=True)
+    print(f"Corpo bruto: {corpo_bruto}", flush=True)
+    print(f"JSON: {dataBruta}", flush=True)
+    print("+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=", flush=True)
+
+    if dataBruta is None:
+        return jsonify({
+            "success": False,
+            "error": "Payload ausente ou inválido. Envie JSON com Content-Type application/json."
+        }), 400
 
     data = {
-        "telefone": dataBruta["telefone"],
-        "cliente": dataBruta["cliente"],
-        "servico": dataBruta["servico"]["nome"],
+        "servico": dataBruta["servico"],
+        "ordemPedido": dataBruta["ordemPedido"],
+        "horaInicio": dataBruta["horaInicio"],
         "data": dataBruta["data"],
-        "horario": dataBruta["horaInicio"],
-        "ordemPedido": dataBruta["ordemPedido"]
+        "cliente": dataBruta["cliente"],
+        "telefone": dataBruta["telefone"]
     }
 
     sms = enviar_mensagem(
@@ -114,7 +129,7 @@ Seu agendamento foi criado com sucesso ✅
 
 📌 Serviço: {data['servico']}
 🗓️ Data: {data['data']}
-⏰ Horário: {data['horario']}
+⏰ Horário: {data['horaInicio']}
 
 🧾 Pedido: #{data['ordemPedido']}
 
@@ -173,5 +188,5 @@ def mensagem_lembrete_pacote(data):
 # START
 # ============================================
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8090)
 
